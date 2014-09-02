@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <opencv/highgui.h>
 #include <opencv/cv.h>
+#include <unistd.h>
 
 IplImage* cap;
 //color è il colore delle linee e dei punti, step è lo step di avanzamento dei for
@@ -30,11 +31,15 @@ int main() {
         exit(1);
 
     //cvNamedWindow("PROGETTO 02", 1); //finestra
+    puts("**ATTESA**");
+	sleep(4);
+    puts("**FINE ATTESA**");
     while (1) {
 		cap = cvQueryFrame(webcam);//prende un frame dalla webcam
         
 		if(!cap)//controllo su cap, break se non c'è
 			break;
+		cvShowImage("cap", cap);
 		
 		if(!img_new){//creazione matrici di lavoro (solo la prima volta)
 			img_new = cvCreateMat(cap->height, cap->width, CV_8UC1);
@@ -42,14 +47,13 @@ int main() {
 			flow_ottico = cvCreateMat(img_old->rows, img_old->cols, CV_32FC2); //per salvare il risultato di farneback
 			analisi = cvCreateMat(img_new->rows, img_new->cols, CV_8UC3); 
 		}
-		if(img_old && img_new){
-			cvCvtColor(cap, img_new, CV_BGR2GRAY); //input cap, output img_new
-			cvCalcOpticalFlowFarneback(img_old, img_new, flow_ottico, 0.5, 3, 15, 3, 5, 1.2, 0);//riempe matrice flow_ottico
-			cvCvtColor(img_old, analisi, CV_GRAY2BGR); //input img_old, output riconvertita
-			crea_griglia_e_uscita(flow_ottico, analisi, 16, CV_RGB(255, 0, 0));
-			cvShowImage("cap", cap);
-			cvShowImage("analisi", analisi);
-		}
+		cvCvtColor(cap, img_new, CV_BGR2GRAY); //input cap, output img_new, converte in B/N
+		cvCalcOpticalFlowFarneback(img_old, img_new, flow_ottico, 0.5, 3, 15, 3, 5, 1.2, 0);//riempe matrice flow_ottico
+		cvCvtColor(img_old, analisi, CV_GRAY2BGR); //input img_old, output analisi
+		crea_griglia_e_uscita(flow_ottico, analisi, 16, CV_RGB(255, 0, 0));
+		 
+		cvShowImage("analisi", analisi);
+		
 		//SCAMBIO DEI DUE FRAME
 		CvMat *temp;//matrice temporanea di appoggio per la macro scambia sotto
 		CV_SWAP(img_old, img_new, temp);//scambia img_old e img_new usando temp come variabile d'appoggio
